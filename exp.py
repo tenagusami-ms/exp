@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python
 """Overview:
     exp.py : open a directory or a file looked from WSL2 with Windows Explorer
              if it is in the Windows filesystem.
@@ -11,17 +11,37 @@ Usage:
 Options:
     -h --help                Show this screen and exit.
 """
+from __future__ import annotations
+
 import dataclasses
 import os
-from subprocess import call
+from subprocess import run
 import re
 import pathlib as p
 import sys
 from functools import reduce
-from typing import Optional
+from typing import Optional, MutableMapping
 
 from docopt import docopt
 from schema import Schema, SchemaError, Use, And
+
+
+def main() -> None:
+    """
+    The main procedure
+    """
+    if os.name == "nt":
+        print(f"This tool {__file__} is usable only on WSL2.\n")
+        sys.exit(1)
+    try:
+        options: Options = read_options()
+        explorer: p.Path = p.Path(r"/mnt") / "c" / "Windows" / "explorer.exe"
+        open_on_windows(explorer, options.path)
+    except(UsageError, NotInspectableError) as e:
+        sys.stderr.write(e.args[0])
+        sys.exit(1)
+    except KeyboardInterrupt:
+        sys.exit(1)
 
 
 class Error(Exception):
@@ -63,11 +83,11 @@ def read_options() -> Options:
     Raises:
         NotInspectableError: the file or the directory does not exists.
     """
-    args = docopt(__doc__)
+    args: MutableMapping = docopt(__doc__)
     schema = Schema({
         "<path>": And(Use(get_path), lambda path: path.is_file() or path.is_dir(),
                       error=f"The specified path {args['<path>']}"
-                            + " does not exist.\n")
+                            " does not exist.\n")
     })
     try:
         args = schema.validate(args)
@@ -92,8 +112,8 @@ def wsl2_full_path2windows_path(wsl2_path: p.Path) -> p.PureWindowsPath:
         [(drive, path)] = re.findall(r"^/mnt/([a-z])(/?.*)", wsl2_path.as_posix())
     except ValueError:
         raise UsageError(f"The input path {wsl2_path.as_posix()} is not a correct WSL2 path "
-                         + f"(function {wsl2_full_path2windows_path.__name__} "
-                         + f"in module {__name__}).\n")
+                         f"(function {wsl2_full_path2windows_path.__name__} "
+                         f"in module {__name__}).\n")
     return reduce(lambda reduced, name: reduced.joinpath(name), p.Path(path).parts,
                   p.PureWindowsPath(rf"{drive}:\\"))
 
@@ -137,31 +157,13 @@ def open_on_windows(explorer: p.Path, path: p.Path) -> None:
         NotInspectableError: the specified path is not inspectable from Windows system.
     """
     if is_wsl2_path(path):
-        windows_path = wsl2_full_path2windows_path(path)
-        call([explorer, windows_path])
+        windows_path: p.PureWindowsPath = wsl2_full_path2windows_path(path)
+        run([explorer, windows_path])
         return
     raise NotInspectableError(
         f"The specified path {path.as_posix()} is not in the windows filesystem "
-        + f"(function {open_on_windows.__name__} "
-        + f"in module {__name__}).\n")
-
-
-def main() -> None:
-    """
-    The main procedure
-    """
-    if os.name == "nt":
-        print(f"This tool {__file__} is usable only on WSL2.\n")
-        sys.exit(1)
-    try:
-        options: Options = read_options()
-        explorer: p.Path = p.Path(r"/mnt") / "c" / "Windows" / "explorer.exe"
-        open_on_windows(explorer, options.path)
-    except(UsageError, NotInspectableError) as e:
-        sys.stderr.write(e.args[0])
-        sys.exit(1)
-    except KeyboardInterrupt:
-        sys.exit(1)
+        f"(function {open_on_windows.__name__} "
+        f"in module {__name__}).\n")
 
 
 if __name__ == '__main__':
