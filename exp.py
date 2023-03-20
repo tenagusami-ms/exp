@@ -14,12 +14,11 @@ Options:
 from __future__ import annotations
 
 import dataclasses
-import os
-from subprocess import run
-import re
 import pathlib as p
+import re
 import sys
 from functools import reduce
+from subprocess import run
 from typing import Optional, MutableMapping
 
 from docopt import docopt
@@ -30,9 +29,9 @@ def main() -> None:
     """
     The main procedure
     """
-    if os.name == "nt":
-        print(f"This tool {__file__} is usable only on WSL2.\n")
-        sys.exit(1)
+    # if os.name == "nt":
+    #     print(f"This tool {__file__} is usable only on WSL2.\n")
+    #     sys.exit(1)
     try:
         options: Options = read_options()
         explorer: p.Path = p.Path(r"/mnt") / "c" / "Windows" / "explorer.exe"
@@ -81,7 +80,7 @@ def read_options() -> Options:
         option class(Options)
 
     Raises:
-        NotInspectableError: the file or the directory does not exists.
+        NotInspectableError: the file or the directory does not exist.
     """
     args: MutableMapping = docopt(__doc__)
     schema = Schema({
@@ -98,7 +97,7 @@ def read_options() -> Options:
 
 def wsl2_full_path2windows_path(wsl2_path: p.Path) -> p.PureWindowsPath:
     """
-    convert a wsl2 path (posix path) to the corresponding windows path.
+    convert a wsl2 path (posix path) to the corresponding windows' path.
     Args:
         wsl2_path(pathlib.Path):  wsl2 path
 
@@ -150,7 +149,7 @@ def open_on_windows(explorer: p.Path, path: p.Path) -> None:
     open path on Windows with explorer.exe
 
     Args:
-        explorer(pathlib.Path): the path to the windows explorer.
+        explorer(pathlib.Path): the path to the Windows explorer.
         path(pathlib.Path): the specified path.
 
     Raises:

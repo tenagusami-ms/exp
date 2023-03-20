@@ -1,10 +1,13 @@
+"""
+unit test of exp.py
+"""
 import os
+import pathlib as p
 
 import pytest
 
 from exp import is_wsl2_path, wsl2_full_path2windows_path, UsageError, get_path, NotInspectableError, open_on_windows, \
     Options
-import pathlib as p
 
 
 def test_is_wsl2_path():
