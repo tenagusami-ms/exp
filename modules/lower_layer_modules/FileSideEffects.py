@@ -93,7 +93,7 @@ def read_text_contents(file: Path, *, encoding="utf-8") -> str:
         raise DataReadError(f"The specified file {file} does not exist."
                             f" ({inspect.currentframe().f_code.co_name} in module {__name__}")
     try:
-        with open(file, mode="r", encoding=encoding) as f:
+        with open(file, encoding=encoding) as f:
             return f.read()
     except UnicodeDecodeError as err:
         raise DataReadError(f"The specified file {file} has an invalid character to read in {encoding} encoding"

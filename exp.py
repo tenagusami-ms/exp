@@ -13,17 +13,13 @@ Options:
 """
 from __future__ import annotations
 
-import dataclasses
 import os
 import re
 import sys
 from functools import reduce
 from pathlib import Path, PureWindowsPath, PurePath
 from subprocess import run
-from typing import Optional, MutableMapping
-
-from docopt import docopt
-from schema import Schema, SchemaError, Use, And
+from typing import Optional
 
 from modules.lower_layer_modules.FileSideEffects import relative_path2absolute
 
@@ -40,7 +36,7 @@ def main() -> None:
         to_open: Path = relative_path2absolute(Path(sys.argv[1]), relative_to=current_directory)
         explorer: Path = Path(r"/mnt") / "c" / "Windows" / "explorer.exe"
         open_on_windows(explorer, to_open)
-    except(UsageError, NotInspectableError) as e:
+    except (UsageError, NotInspectableError) as e:
         sys.stderr.write(e.args[0])
         sys.exit(1)
     except KeyboardInterrupt:
@@ -66,37 +62,6 @@ class UsageError(Error):
     The error for usage of a function.
     """
     pass
-
-
-@dataclasses.dataclass
-class Options:
-    """
-    dataclass for arguments and options
-    """
-    path: Path
-
-
-def read_options() -> Options:
-    """
-    read command line arguments and options
-
-    Returns:
-        option class(Options)
-
-    Raises:
-        NotInspectableError: the file or the directory does not exist.
-    """
-    args: MutableMapping = docopt(__doc__)
-    schema = Schema({
-        "<path>": And(Use(get_path), lambda path: path.is_file() or path.is_dir(),
-                      error=f"The specified path {args['<path>']}"
-                            " does not exist.\n")
-    })
-    try:
-        args = schema.validate(args)
-    except SchemaError as e:
-        raise NotInspectableError(e.args[0])
-    return Options(args["<path>"])
 
 
 def wsl2_full_path2windows_path(wsl2_path: Path) -> PureWindowsPath:

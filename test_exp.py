@@ -6,8 +6,7 @@ import pathlib as p
 
 import pytest
 
-from exp import is_wsl2_path, wsl2_full_path2windows_path, UsageError, get_path, NotInspectableError, open_on_windows, \
-    Options
+from exp import is_wsl2_path, wsl2_full_path2windows_path, UsageError, get_path, NotInspectableError, open_on_windows
 
 
 def test_is_wsl2_path():
@@ -41,8 +40,3 @@ def test_open_on_windows():
     if os.name != "nt":
         with pytest.raises(NotInspectableError):
             open_on_windows(p.Path(r"/mnt") / "c" / "Windows" / "explorer.exe", p.Path("/home/ykanya"))
-
-
-class TestOptions:
-    def test_options(self):
-        assert Options(p.Path("/home/ykanya")).path == p.Path("/home/ykanya")
