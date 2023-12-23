@@ -6,7 +6,7 @@ import pathlib as p
 
 import pytest
 
-from exp import is_wsl2_path, wsl2_full_path2windows_path, UsageError, get_path, NotInspectableError, open_on_windows
+from exp import is_wsl2_path, wsl2_full_path2windows_path, UsageError
 
 
 def test_is_wsl2_path():
@@ -26,17 +26,3 @@ def test_wsl2_full_path2windows_path():
            == p.PureWindowsPath(r"C:\\")
     with pytest.raises(UsageError):
         wsl2_full_path2windows_path((p.Path("/mt") / "c"))
-
-
-def test_get_path():
-    assert get_path("") == p.Path(".").resolve()
-    assert get_path(None) == p.Path(".").resolve()
-    if os.name != "nt":
-        assert get_path("/home/ykanya") == p.Path("/home/ykanya").resolve()
-        assert get_path("/home/ykanya/tmp") == p.Path("/mnt/z/tmp")
-
-
-def test_open_on_windows():
-    if os.name != "nt":
-        with pytest.raises(NotInspectableError):
-            open_on_windows(p.Path(r"/mnt") / "c" / "Windows" / "explorer.exe", p.Path("/home/ykanya"))

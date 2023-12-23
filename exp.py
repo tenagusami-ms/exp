@@ -19,7 +19,6 @@ import sys
 from functools import reduce
 from pathlib import Path, PureWindowsPath, PurePath
 from subprocess import run
-from typing import Optional
 
 from modules.lower_layer_modules.FileSideEffects import relative_path2absolute
 
@@ -36,7 +35,7 @@ def main() -> None:
         to_open: Path = relative_path2absolute(Path(sys.argv[1]), relative_to=current_directory)
         explorer: Path = Path(r"/mnt") / "c" / "Windows" / "explorer.exe"
         open_on_windows(explorer, to_open)
-    except (UsageError, NotInspectableError) as e:
+    except Error as e:
         sys.stderr.write(e.args[0])
         sys.exit(1)
     except KeyboardInterrupt:
@@ -46,13 +45,6 @@ def main() -> None:
 class Error(Exception):
     """
     The fundamental exception class
-    """
-    pass
-
-
-class NotInspectableError(Error):
-    """
-    The Error when the path on a pure WSL2 filesystem is inspected.
     """
     pass
 
@@ -95,22 +87,7 @@ def is_wsl2_path(path: PurePath) -> bool:
     Returns:
         True if correct.
     """
-    return re.match(r"^/mnt/[a-z]/", path.as_posix()) is not None
-
-
-def get_path(path_str: Optional[str]) -> Path:
-    """
-    Convert the WSL2 path specified as the command line argument to a pathlib.Path object.
-    If nothing is specified, the current directory is used.
-    Args:
-        path_str(str): the command line argument
-
-    Returns:
-        path object(pathlib.Path)
-    """
-    if path_str is None or len(path_str) == 0:
-        return Path(".").resolve()
-    return Path(path_str).resolve()
+    return path.as_posix().startswith(r"/mnt/")
 
 
 def open_on_windows(explorer: Path, path: Path) -> None:
@@ -128,10 +105,9 @@ def open_on_windows(explorer: Path, path: Path) -> None:
         windows_path: PureWindowsPath = wsl2_full_path2windows_path(path)
         run([explorer, windows_path])
         return
-    raise NotInspectableError(
-        f"The specified path {path.as_posix()} is not in the windows filesystem "
-        f"(function {open_on_windows.__name__} "
-        f"in module {__name__}).\n")
+    wsl_windows_path: PureWindowsPath = PureWindowsPath("\\wsl$") / "Ubuntu-20.04"
+    run([explorer, wsl_windows_path / path])
+    return
 
 
 if __name__ == '__main__':
