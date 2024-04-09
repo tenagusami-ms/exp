@@ -32,7 +32,7 @@ def main() -> None:
         sys.exit(1)
     try:
         current_directory: Path = Path(".").resolve()
-        to_open: Path = relative_path2absolute(Path(sys.argv[1]), relative_to=current_directory)
+        to_open: Path = relative_path2absolute(Path(sys.argv[1]).expanduser(), relative_to=current_directory)
         explorer: Path = Path(r"/mnt") / "c" / "Windows" / "explorer.exe"
         open_on_windows(explorer, to_open)
     except Error as e:
